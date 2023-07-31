@@ -12,9 +12,9 @@ def create_db():
     db.session.commit()
 
 
-@cli.command("seed_db")
+@cli.command('seed_db')
 def seed_db():
-    db.session.add(User(email="michael@mherman.org"))
+    db.session.add(User(email="dev@example.com"))
     db.session.commit()
 
 
