@@ -9,3 +9,4 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     STATIC_FOLDER = f"{os.getenv('APP_FOLDER')}/project/static"
     MEDIA_FOLDER = f"{os.getenv('APP_FOLDER')}/project/media"
+    SECRET_KEY = os.getenv('APP_SECRET_KEY')
