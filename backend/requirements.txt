@@ -7,3 +7,4 @@ flask-restful==0.3.10
 pyjwt==2.8.0
 Flask-Bcrypt==1.0.1
 marshmallow==3.20.1
+flask_jwt_extended==4.5.2

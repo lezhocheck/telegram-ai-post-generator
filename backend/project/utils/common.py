@@ -1,13 +1,12 @@
-import os
 import jwt
 from datetime import datetime, timedelta
-from .codes import is_success, HTTP_400_BAD_REQUEST
-import json
-from flask import Response
+from .codes import is_success, HTTP_200_OK
+from flask import Response, jsonify
+import os
 
 
 def format_response(data: object = None, message: str = None, 
-                    status: int = HTTP_400_BAD_REQUEST) -> Response:
+                    status: int = HTTP_200_OK) -> Response:
     result = dict()
     if data is not None:
         if is_success(status):
@@ -16,11 +15,13 @@ def format_response(data: object = None, message: str = None,
             result['errors'] = data
     if message:
         result['message'] = message
-    return Response(response=json.dumps(result), status=status)
+    response = jsonify(result)
+    response.status = status
+    return response
 
 
 class Token:
-    SECRET_KEY = os.environ.get('SECRET_KEY')
+    SECRET_KEY = os.getenv('APP_SECRET_KEY')
     ALGORITHM = 'HS256'
 
     @staticmethod
