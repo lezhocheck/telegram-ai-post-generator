@@ -18,6 +18,9 @@ class Model(db.Model):
         self.title = kwargs.get('title')
         self.description = kwargs.get('description')
         self.is_available = kwargs.get('is_available')
+
+    def as_dict(self) -> dict:
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
     
     def __repr__(self) -> str:
         return f'<Model id={self.id} title={self.title}>'

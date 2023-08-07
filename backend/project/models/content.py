@@ -35,5 +35,8 @@ class Content(db.Model):
         self.link_to_disk = kwargs.get('link_to_disk')
         self.keywords = kwargs.get('keywords')
     
+    def as_dict(self) -> dict:
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+    
     def __repr__(self) -> str:
         return f'<Content id={self.id} type={self.type}>'

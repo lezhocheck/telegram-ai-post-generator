@@ -1,7 +1,7 @@
 from flask import request, Response, Blueprint
-from project.services import create_user, login_user, refresh_tokens
+from project.services import create_user, login_user
 from project.utils.common import format_response
-from flask_jwt_extended import unset_jwt_cookies
+from flask_jwt_extended import unset_jwt_cookies, jwt_required, get_jwt_identity, create_access_token
 
 
 user_blueprint = Blueprint('user', __name__)
@@ -26,6 +26,9 @@ def logout() -> Response:
     return response 
     
 
-@user_blueprint.after_request
-def refresh(response: Response) -> Response:
-    return refresh_tokens(response)
+@user_blueprint.route('/auth/refresh', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh() -> Response:
+    id = get_jwt_identity()
+    access_token = create_access_token(identity=id)
+    return format_response(data={'tokens': {'access': access_token}})

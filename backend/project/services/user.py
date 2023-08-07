@@ -3,13 +3,13 @@ from marshmallow import Schema, fields, validate
 from project.utils import format_response, HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 from flask_jwt_extended import (
     create_access_token, 
+    create_refresh_token,
     set_access_cookies, 
     get_jwt,
     get_jwt_identity
 )
 from project.extensions import db
 from flask import Response
-from datetime import datetime, timedelta
 
 
 class SignupSchema(Schema):
@@ -29,7 +29,7 @@ def create_user(data: dict) -> Response:
     if errors:
         return format_response(data=errors, status=HTTP_400_BAD_REQUEST)
     
-    user_exist = User.query.filter_by(username=data.get('email')).first()
+    user_exist = db.session.query(User.id).filter_by(email=data.get('email')).first()
     if user_exist:
         return format_response(message='User already exist', status=HTTP_400_BAD_REQUEST)
 
@@ -55,19 +55,7 @@ def login_user(data: dict) -> Response:
         return format_response(message='Invalid credentials', status=HTTP_400_BAD_REQUEST)
     
     access_token = create_access_token(identity=user.id)
+    refresh_token = create_refresh_token(identity=user.id)
     data.pop('password')
-    data['tokens'] = {'access': access_token}
+    data['tokens'] = {'access': access_token, 'refresh': refresh_token}
     return format_response(data=data, message='User logged in successfully', status=HTTP_201_CREATED)
-
-
-def refresh_tokens(response: Response) -> Response:
-    try:
-        exp_timestamp = get_jwt()['exp']
-        now = datetime.utcnow()
-        target_timestamp = datetime.timestamp(now + timedelta(minutes=30))
-        if target_timestamp > exp_timestamp:
-            access_token = create_access_token(identity=get_jwt_identity())
-            set_access_cookies(response, access_token)
-        return response
-    except (RuntimeError, KeyError):
-        return response

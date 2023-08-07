@@ -27,6 +27,14 @@ class Query(db.Model):
         self.model_id = kwargs.get('model_id')
         self.prompt = kwargs.get('prompt')
         self.processing_stage = kwargs.get('processing_stage')
+
+    def as_dict(self) -> dict:
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
     
     def __repr__(self) -> str:
         return f'<Query id={self.id} prompt={self.prompt}>'
+    
+
+@db.event.listens_for(Query, 'after_insert')
+def after_query_insert(mapper, connection, target):
+    print(f"New row added to Query with id: {target.id}")
