@@ -4,7 +4,7 @@ from datetime import datetime
 from sqlalchemy.orm import Mapped
 
 
-class ProcessingStages(Enum):
+class ProcessingStages(str, Enum):
     FINISHED = 'Finished'
     WAITING = 'Waiting'
     FAILED = 'Failed'
@@ -20,10 +20,13 @@ class Query(db.Model):
     prompt: Mapped[str] = db.Column(db.Text)
     timestamp: Mapped[datetime] = db.Column(db.DateTime, default=datetime.utcnow)
     processing_stage: Mapped[ProcessingStages] = db.Column(db.Enum(ProcessingStages), nullable=False)
-    content: Mapped['Content'] = db.relationship('Content', back_populates='query')
+    content: Mapped['Content'] = db.relationship('Content', uselist=False, backref='contents')
 
     def __init__(self, **kwargs) -> None:
+        self.user_id = kwargs.get('user_id')
+        self.model_id = kwargs.get('model_id')
         self.prompt = kwargs.get('prompt')
+        self.processing_stage = kwargs.get('processing_stage')
     
     def __repr__(self) -> str:
         return f'<Query id={self.id} prompt={self.prompt}>'

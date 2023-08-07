@@ -12,12 +12,11 @@ class Model(db.Model):
     description: Mapped[str] = db.Column(db.Text)
     added: Mapped[datetime] = db.Column(db.DateTime, default=datetime.utcnow)
     is_available: Mapped[bool] = db.Column(db.Boolean, default=True)
-    queries: Mapped[list['Query']] = db.relationship('Query', back_populates='model')
+    queries: Mapped[list['Query']] = db.relationship('Query', backref='models')
 
     def __init__(self, **kwargs) -> None:
         self.title = kwargs.get('title')
         self.description = kwargs.get('description')
-        self.added = kwargs.get('added')
         self.is_available = kwargs.get('is_available')
     
     def __repr__(self) -> str:

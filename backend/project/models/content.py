@@ -4,7 +4,7 @@ from sqlalchemy.orm import Mapped
 from enum import Enum
 
 
-class Styles(Enum):
+class Styles(str, Enum):
     REALISM = 'Realism'
     IMPRESSIONISM = 'Impressionism'
     CUBISM = 'Cubism'
@@ -27,13 +27,13 @@ class Content(db.Model):
     style: Mapped[Styles] = db.Column(db.Enum(Styles), nullable=False)
     link_to_disk: Mapped[str] = db.Column(db.String(255), nullable=False)
     keywords: Mapped[str] = db.Column(db.Text)
-    query: Mapped['Query'] = db.relationship('Query', back_populates='content')
+    query_id: Mapped[int] = db.Column(db.BigInteger, db.ForeignKey('queries.id'))
 
     def __init__(self, **kwargs) -> None:
         self.type = kwargs.get('type')
         self.style = kwargs.get('style')
         self.link_to_disk = kwargs.get('link_to_disk')
-        self.keywords = kwargs.get('link_to_disk')
+        self.keywords = kwargs.get('keywords')
     
     def __repr__(self) -> str:
         return f'<Content id={self.id} type={self.type}>'

@@ -2,7 +2,6 @@ from project.extensions import db
 import uuid
 from datetime import datetime
 from flask_bcrypt import generate_password_hash, check_password_hash
-from marshmallow import Schema, fields, validate
 from sqlalchemy.orm import Mapped
 from .query import Query
 
@@ -16,7 +15,7 @@ class User(db.Model):
     password: Mapped[str] = db.Column(db.String(512), nullable=False)
     joined: Mapped[datetime] = db.Column(db.DateTime, default=datetime.utcnow)
     is_active: Mapped[bool] = db.Column(db.Boolean, default=True)
-    queries: Mapped[list['Query']] = db.relationship('Query', back_populates='user')
+    queries: Mapped[list['Query']] = db.relationship('Query', backref='users')
 
     def __init__(self, **kwargs) -> None:
         self.username = kwargs.get('username')
@@ -33,14 +32,4 @@ class User(db.Model):
     
     def check_password(self, password: str) -> bool:
         return check_password_hash(self.password, password)
-
-
-class SignupUserSchema(Schema):
-    username = fields.Str(validate=validate.Length(min=4, max=40))
-    email = fields.Email(required=True)
-    password = fields.Str(required=True, validate=validate.Length(min=6, max=50))
-
-
-class LoginUserSchema(Schema):
-    email = fields.Email(required=True)
-    password = fields.Str(required=True)
+    

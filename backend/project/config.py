@@ -12,5 +12,5 @@ class Config:
     MEDIA_FOLDER = f"{os.getenv('APP_FOLDER')}/project/media"
     JWT_SECRET_KEY = os.getenv('APP_SECRET_KEY')
     JWT_COOKIE_SECURE = os.getenv('JWT_COOKIE_SECURE')
-    JWT_TOKEN_LOCATION = ['cookies']
+    JWT_TOKEN_LOCATION = ['headers']
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=30)

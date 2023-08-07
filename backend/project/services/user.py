@@ -1,19 +1,30 @@
-from project.models import SignupUserSchema, User, LoginUserSchema
-from project.utils.common import format_response
+from project.models import User
+from marshmallow import Schema, fields, validate
+from project.utils import format_response, HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 from flask_jwt_extended import (
     create_access_token, 
     set_access_cookies, 
     get_jwt,
     get_jwt_identity
 )
-from project.utils.codes import *
 from project.extensions import db
 from flask import Response
 from datetime import datetime, timedelta
 
 
+class SignupSchema(Schema):
+    username = fields.Str(validate=validate.Length(min=4, max=40))
+    email = fields.Email(required=True)
+    password = fields.Str(required=True, validate=validate.Length(min=6, max=50))
+
+
+class LoginSchema(Schema):
+    email = fields.Email(required=True)
+    password = fields.Str(required=True)
+
+
 def create_user(data: dict) -> Response:
-    validation_schema = SignupUserSchema()
+    validation_schema = SignupSchema()
     errors = validation_schema.validate(data)
     if errors:
         return format_response(data=errors, status=HTTP_400_BAD_REQUEST)
@@ -31,7 +42,7 @@ def create_user(data: dict) -> Response:
 
 
 def login_user(data: dict) -> Response:
-    validation_schema = LoginUserSchema()
+    validation_schema = LoginSchema()
     errors = validation_schema.validate(data)
     if errors:
         return format_response(data=errors, status=HTTP_400_BAD_REQUEST)
@@ -45,12 +56,11 @@ def login_user(data: dict) -> Response:
     
     access_token = create_access_token(identity=user.id)
     data.pop('password')
-    response = format_response(data=data, message='User logged in successfully', status=HTTP_201_CREATED)
-    set_access_cookies(response, access_token)
-    return response
+    data['tokens'] = {'access': access_token}
+    return format_response(data=data, message='User logged in successfully', status=HTTP_201_CREATED)
 
 
-def refresh_expiring_jwts(response: Response) -> Response:
+def refresh_tokens(response: Response) -> Response:
     try:
         exp_timestamp = get_jwt()['exp']
         now = datetime.utcnow()
@@ -60,5 +70,4 @@ def refresh_expiring_jwts(response: Response) -> Response:
             set_access_cookies(response, access_token)
         return response
     except (RuntimeError, KeyError):
-        # Case where there is not a valid JWT. Just return the original response
         return response

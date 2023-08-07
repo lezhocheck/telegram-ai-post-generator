@@ -1,8 +1,8 @@
-import jwt
-from datetime import datetime, timedelta
-from .codes import is_success, HTTP_200_OK
-from flask import Response, jsonify
-import os
+from .codes import is_success, HTTP_200_OK, HTTP_401_UNAUTHORIZED
+from flask import Response, jsonify, g
+from functools import wraps
+from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
+from project.models.user import User
 
 
 def format_response(data: object = None, message: str = None, 
@@ -12,29 +12,26 @@ def format_response(data: object = None, message: str = None,
         if is_success(status):
             result['data'] = data
         else:
-            result['errors'] = data
+            result['err'] = data
     if message:
-        result['message'] = message
+        result['msg'] = message
     response = jsonify(result)
     response.status = status
     return response
 
 
-class Token:
-    SECRET_KEY = os.getenv('APP_SECRET_KEY')
-    ALGORITHM = 'HS256'
+def login_required(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        verify_jwt_in_request() 
+        user_id = get_jwt_identity()
+        user = User.query.filter_by(id=user_id).first()
+        if not user:
+            return format_response(message='Invalid token', status=HTTP_401_UNAUTHORIZED)
+        g.current_user = user
+        return fn(*args, **kwargs)
+    return wrapper
 
-    @staticmethod
-    def encode(identifier: int) -> str:
-        payload = {
-            'exp': datetime.utcnow() + timedelta(minutes=15),
-            'id': str(identifier)
-        }
-        token = jwt.encode(payload, Token.SECRET_KEY, algorithm=Token.ALGORITHM)
-        return token
 
-    @staticmethod
-    def decode(token: str) -> dict:
-        return jwt.decode(token, Token.SECRET_KEY,
-                          algorithms=Token.ALGORITHM,
-                          options={'require_exp': True})
+
+
