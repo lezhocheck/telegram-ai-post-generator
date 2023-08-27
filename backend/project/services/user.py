@@ -3,10 +3,7 @@ from marshmallow import Schema, fields, validate
 from project.utils import format_response, HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 from flask_jwt_extended import (
     create_access_token, 
-    create_refresh_token,
-    set_access_cookies, 
-    get_jwt,
-    get_jwt_identity
+    create_refresh_token
 )
 from project.extensions import db
 from flask import Response

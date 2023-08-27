@@ -1,7 +1,7 @@
 from flask.cli import FlaskGroup
 from project import app
 from project.extensions import db
-from project.models import Model
+from project.nn.sd14 import SD14Api
 
 
 cli = FlaskGroup(app)
@@ -14,10 +14,10 @@ def create_db():
     db.session.commit()
 
 
-@cli.command('seed_db')
-def seed_db():
-    model = Model(title='Some model 1', description='Some long description', is_available=True)
-    db.session.add(model)
+@cli.command('preload')
+def preload_dependencies():
+    SD14Api.load_api()
+    db.session.add(SD14Api.build_model())
     db.session.commit()
 
 

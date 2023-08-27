@@ -3,4 +3,4 @@ from .user import (
     login_user
 )
 
-from .query import create_query, get_user_querries
+from .query import create_query, get_user_querries, after_query_insert

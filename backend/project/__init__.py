@@ -3,7 +3,8 @@ from project.extensions import db, swaggerui_blueprint
 from project.routes.user import user_blueprint
 from project.routes.query import query_blueprint
 from project.routes.main import main_blueprint
-from project.services.errrors import error_blueprint
+from project.routes.content import content_blueprint
+from project.routes.model import model_blueprint
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
@@ -14,8 +15,8 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(main_blueprint, url_prefix='/api')
     app.register_blueprint(user_blueprint, url_prefix='/api')
     app.register_blueprint(query_blueprint, url_prefix='/api')
-    app.register_blueprint(error_blueprint)
-
+    app.register_blueprint(content_blueprint, url_prefix='/api')
+    app.register_blueprint(model_blueprint, url_prefix='/api')
 
 
 def create_app() -> Flask:
