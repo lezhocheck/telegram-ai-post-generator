@@ -45,7 +45,7 @@ def create_query(id: int, data: dict) -> Response:
 
 
 def get_path() -> os.path:
-    path = current_app.config['MEDIA_FOLDER']
+    path = current_app.config['STATIC_FOLDER']
     id = uuid.uuid4().hex
     return os.path.join(path, f'{id}.png')
 

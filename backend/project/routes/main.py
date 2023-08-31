@@ -1,6 +1,5 @@
 import os
-from flask import send_from_directory, request, Response, current_app, Blueprint
-from werkzeug.utils import secure_filename
+from flask import send_from_directory, Response, current_app, Blueprint
 from project.utils.common import format_response
 from project.utils.codes import HTTP_200_OK
 
