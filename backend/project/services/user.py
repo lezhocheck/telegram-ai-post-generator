@@ -1,58 +1,47 @@
-from project.models import User
-from marshmallow import Schema, fields, validate
-from project.utils import format_response, HTTP_400_BAD_REQUEST, HTTP_201_CREATED
+from project.models.user import User, LoginValidator
+from project.utils.http import BadRequest, HttpStatus
+from functools import wraps
+from typing import Any, Callable
+from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
 from flask_jwt_extended import (
     create_access_token, 
     create_refresh_token
 )
 from project.extensions import db
-from flask import Response
+from flask import g
 
 
-class SignupSchema(Schema):
-    username = fields.Str(validate=validate.Length(min=4, max=40))
-    email = fields.Email(required=True)
-    password = fields.Str(required=True, validate=validate.Length(min=6, max=50))
+def login_required(func: Callable) -> Callable:
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        verify_jwt_in_request() 
+        user_id = get_jwt_identity()
+        user = User.query.filter_by(id=user_id).first()
+        if not user:
+            raise BadRequest('Invalid token')
+        g.current_user = user
+        return func(user, *args, **kwargs)
+    return wrapper
 
 
-class LoginSchema(Schema):
-    email = fields.Email(required=True)
-    password = fields.Str(required=True)
-
-
-def create_user(data: dict) -> Response:
-    validation_schema = SignupSchema()
-    errors = validation_schema.validate(data)
-    if errors:
-        return format_response(data=errors, status=HTTP_400_BAD_REQUEST)
-    
-    user_exist = db.session.query(User.id).filter_by(email=data.get('email')).first()
-    if user_exist:
-        return format_response(message='User already exist', status=HTTP_400_BAD_REQUEST)
-
-    new_user = User(**data)
-    new_user.hash_password()
-    db.session.add(new_user)
+def create_user(data: dict[str, Any]) -> tuple[dict[str, Any], HttpStatus]:
+    User.validate(data)
+    if User.query.filter_by(email=data['email']).first():
+        raise BadRequest('User already exists')
+    user = User(**data)
+    user.hash_password()
+    db.session.add(user)
     db.session.commit()
-    data.pop('password')
-    return format_response(data=data, message='User created', status=HTTP_201_CREATED)
+    return user.to_dict(), HttpStatus.CREATED
 
 
-def login_user(data: dict) -> Response:
-    validation_schema = LoginSchema()
-    errors = validation_schema.validate(data)
-    if errors:
-        return format_response(data=errors, status=HTTP_400_BAD_REQUEST)
-
-    user = User.query.filter_by(email=data.get('email')).first()
-    if user is None:
-        return format_response(message='User not found', status=HTTP_400_BAD_REQUEST)
-    
-    if not user.check_password(data.get('password')):
-        return format_response(message='Invalid credentials', status=HTTP_400_BAD_REQUEST)
-    
+def login_user(data: dict[str, Any]) -> tuple[dict[str, Any], HttpStatus]:
+    User.validate(data, LoginValidator)
+    user: User | None = User.query.filter_by(email=data.get('email')).first()
+    if user is None or not user.check_password(data['password']):
+        raise BadRequest('Invalid credentials')
     access_token = create_access_token(identity=user.id)
     refresh_token = create_refresh_token(identity=user.id)
-    data.pop('password')
+    data = user.to_dict()
     data['tokens'] = {'access': access_token, 'refresh': refresh_token}
-    return format_response(data=data, message='User logged in successfully', status=HTTP_201_CREATED)
+    return data, HttpStatus.OK

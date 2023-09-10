@@ -8,15 +8,16 @@ from project.routes.model import model_blueprint
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
+from project.utils.http import BadRequest
 
 
 def register_blueprints(app: Flask) -> None:
     app.register_blueprint(swaggerui_blueprint)
-    app.register_blueprint(main_blueprint, url_prefix='/api')
-    app.register_blueprint(user_blueprint, url_prefix='/api')
-    app.register_blueprint(query_blueprint, url_prefix='/api')
-    app.register_blueprint(content_blueprint, url_prefix='/api')
-    app.register_blueprint(model_blueprint, url_prefix='/api')
+    app.register_blueprint(main_blueprint)
+    app.register_blueprint(user_blueprint)
+    app.register_blueprint(query_blueprint)
+    app.register_blueprint(content_blueprint)
+    app.register_blueprint(model_blueprint)
 
 
 def create_app() -> Flask:
@@ -24,10 +25,8 @@ def create_app() -> Flask:
     app.config.from_object('project.config.Config')
     JWTManager(app)
     CORS(app)
-    api = Api(app)
+    Api(app)
     db.init_app(app)
     register_blueprints(app)
+    app.register_error_handler(BadRequest, lambda e: e.to_response())
     return app
-
-
-app = create_app()

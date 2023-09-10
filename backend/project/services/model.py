@@ -1,16 +1,18 @@
-from project.extensions import db
-from project.models import Model
-from flask import Response
-from project.utils import format_response, HTTP_200_OK, HTTP_400_BAD_REQUEST
+from project.models.model import Model
+from project.utils.http import BadRequest, HttpStatus
+from typing import Any
 
 
-def get_models(id: [int, None] = None) -> Response:
-    if id is None:
-        result = db.session.query(Model).all()
-        result = [model.as_dict() for model in result]
-    else:
-        result = db.session.query(Model).filter_by(id=id).first()
-        if not result:
-            return format_response(message='No content', status=HTTP_400_BAD_REQUEST)
-        result = result.as_dict()
-    return format_response(data=result, status=HTTP_200_OK)
+def get_all_models() -> tuple[list[dict[str, Any]], HttpStatus]:
+    result = Model.query.all()
+    result = [model.to_dict() for model in result]
+    if not len(result):
+        raise BadRequest('No models')
+    return result, HttpStatus.OK
+
+
+def get_model_by_id(id: int) -> tuple[dict[str, Any], HttpStatus]:
+    result = Model.query.filter_by(id=id).first()
+    if not result:
+        raise BadRequest('No model')
+    return result.to_dict(), HttpStatus.OK

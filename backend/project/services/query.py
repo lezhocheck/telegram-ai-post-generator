@@ -1,92 +1,72 @@
-from flask import Response, current_app, Flask
-from project.utils import format_response, HTTP_400_BAD_REQUEST, HTTP_201_CREATED, HTTP_200_OK
-from project.models import Model, Query, Styles, ProcessingStages, Content, ContentType
+from flask import current_app, Flask, url_for
+from project.utils.http import BadRequest, HttpStatus
+from project.models.query import Query
+from project.models.content import Content, Type, State
+from project.models.model import Model
+from project.models.user import User
 from project.extensions import db
-from marshmallow import Schema, fields, validate, ValidationError
 import os
-from project.nn.sd14 import SD14Api
+from project.api.sd14 import SD14Api
 import traceback
 import threading
+from typing import Any
 from datetime import datetime
 import uuid
-
-
-class CreateQuerySchema(Schema):
-    prompt = fields.Str(required=True, validate=validate.Length(min=1, max=100_000))
-    style = fields.Enum(Styles, by_value=True, required=True)
-    model = fields.Str(required=True)
-
-    def validate_model(self, value):
-        with current_app.app_context():
-            if not db.session.query(Model).filter_by(title=value).first():
-                raise ValidationError(f"Model '{value}' does not exist.")
         
 
-def create_query(id: int, data: dict) -> Response:
-    validation_schema = CreateQuerySchema()
-    errors = validation_schema.validate(data)
-    if errors:
-        return format_response(data=errors, status=HTTP_400_BAD_REQUEST)
+class ProcessQuerryThread(threading.Thread):
+    def __init__(self, app: Flask, query_id: int, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        path = app.config['STATIC_FOLDER']
+        id = f'{uuid.uuid4().hex}.png'
+        self._db_session = db.session
+        self._local_path = os.path.join(path, id)
+        self._public_url = url_for('main.get_from_static', name=id, _external=True)
+        self._content = Content.query.filter_by(id=query_id).first()
     
-    model = db.session.query(Model).filter_by(title=data.pop('model')).first()
-    if not model:
-        return format_response(message='Invalid model', status=HTTP_400_BAD_REQUEST)
+    def run(self) -> None:
+        try:
+            # TODO
+            # SD14Api.run(query, path)
+            import time
+            time.sleep(5)
+            self._content.link_to_disk = self._public_url
+            self._content.generated = datetime.utcnow()
+            self._content.processing_stage = State.FINISHED
+            print(f'Successfully generated content at {self._local_path}')
+        except Exception:
+            print('Failed generating content')
+            traceback.print_exc()
+            self._content.processing_stage = State.FAILED
+            self._db_session.commit()    
 
-    data['user_id'] = id
-    data['model_id'] = model.id
-    data['processing_stage'] = ProcessingStages.WAITING
-    new_query = Query(**data)
-    db.session.add(new_query)
+
+def create_query(user: User, data: dict[str, Any]) -> tuple[dict[str, Any], HttpStatus]:
+    Query.validate(data)
+    model = Model.query.filter_by(title=data.pop('model')).first()
+    query = Query(**data, user_id=user.id, model_id=model.id)
+    db.session.add(query)
     db.session.flush()
-    db.session.commit()
-
-    after_query_insert(new_query)
-    return format_response(data=data, message='Query added', status=HTTP_201_CREATED)
-
-
-def get_path() -> os.path:
-    path = current_app.config['STATIC_FOLDER']
-    id = uuid.uuid4().hex
-    return os.path.join(path, f'{id}.png')
-
-
-def after_query_insert(target: Query):
-    query = f'{target.prompt}'
-    content = Content(type=ContentType.IMAGE, 
-                      processing_stage=ProcessingStages.PROCESSING,
-                      query_id=target.id)
+    content = Content(id=query.id,
+                      type=Type.IMAGE, 
+                      processing_stage=State.PROCESSING)
     db.session.add(content)
-    db.session.flush()
     db.session.commit()
-
-    path = get_path()
-
-    def process(app: Flask):
-        with app.app_context():
-            selected = Content.query.get(content.id)
-            try:
-                SD14Api.run(query, path)
-                selected.link_to_disk = path
-                selected.generated = datetime.utcnow()
-                selected.processing_stage = ProcessingStages.FINISHED
-                print(f'Successfully generated content at {path}')
-            except Exception:
-                print('Failed generating content')
-                traceback.print_exc()
-                selected.processing_stage = ProcessingStages.FAILED
-            print(selected.as_dict())
-            db.session.commit()
-            
-    thread = threading.Thread(target=process, kwargs={'app': current_app._get_current_object()})
+    thread = ProcessQuerryThread(current_app, query.id)
     thread.start()
+    return query.to_dict(), HttpStatus.CREATED 
 
-def get_user_querries(user_id: int, id: [int, None] = None) -> Response:
-    if id is None:
-        result = db.session.query(Query).filter_by(user_id=user_id).all()
-        result = [i.as_dict() for i in result if i]
-    else:
-        result = db.session.query(Query).filter_by(user_id=user_id, id=id).first()
-        if not result:
-            return format_response(message='No queries', status=HTTP_400_BAD_REQUEST)
-        result = result.as_dict()
-    return format_response(data=result, status=HTTP_200_OK)
+
+def get_queries(user: User) -> tuple[list[dict[str, Any]], HttpStatus]:
+    result = Query.query.filter_by(user_id=user.id).all()
+    result = [query.to_dict() for query in result]
+    if not len(result):
+        raise BadRequest('No queries')
+    return result, HttpStatus.OK
+
+
+def get_query_by_id(user: User, id: int) -> tuple[dict[str, Any], HttpStatus]:
+    result = Query.query.filter_by(id=id, user_id=user.id).all()
+    if not result:
+        raise BadRequest('No content')
+    return result.to_dict(), HttpStatus.OK

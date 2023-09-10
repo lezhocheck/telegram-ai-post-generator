@@ -1,7 +1,12 @@
 from flask import request, Response, Blueprint
-from project.services import create_user, login_user
-from project.utils.common import format_response
-from flask_jwt_extended import unset_jwt_cookies, jwt_required, get_jwt_identity, create_access_token
+from project.services.user import create_user, login_user
+from project.utils.http import response, HttpStatus
+from flask_jwt_extended import (
+    unset_jwt_cookies, 
+    jwt_required, 
+    get_jwt_identity,
+    create_access_token
+)
 
 
 user_blueprint = Blueprint('user', __name__)
@@ -10,20 +15,22 @@ user_blueprint = Blueprint('user', __name__)
 @user_blueprint.route('/auth/signup', methods=['POST'])
 def signup() -> Response:
     input_data = request.get_json()
-    return create_user(input_data)
+    data, code = create_user(input_data)
+    return response(data, code)
 
 
 @user_blueprint.route('/auth/login', methods=['POST'])
 def login() -> Response:
     input_data = request.get_json()
-    return login_user(input_data)  
+    data, code = login_user(input_data)
+    return response(data, code)
 
 
 @user_blueprint.route('/auth/logout', methods=['POST'])
 def logout() -> Response:
-    response = format_response(message='Successfully logged out')
-    unset_jwt_cookies(response)
-    return response 
+    result = response('Successfully logged out', HttpStatus.OK)
+    unset_jwt_cookies(result)
+    return result
     
 
 @user_blueprint.route('/auth/refresh', methods=['POST'])
@@ -31,4 +38,5 @@ def logout() -> Response:
 def refresh() -> Response:
     id = get_jwt_identity()
     access_token = create_access_token(identity=id)
-    return format_response(data={'tokens': {'access': access_token}})
+    result = {'tokens': {'access': access_token}}
+    return response(result, HttpStatus.OK)

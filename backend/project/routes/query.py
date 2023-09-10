@@ -1,7 +1,8 @@
 from flask import request, Response, Blueprint
-from project.services import create_query, get_user_querries
-from project.utils.common import login_required
-from flask_jwt_extended import get_jwt_identity
+from project.services.user import login_required
+from project.utils.format import response
+from project.models.user import User
+from project.services.query import create_query, get_queries, get_query_by_id
 
 
 query_blueprint = Blueprint('query', __name__)
@@ -9,21 +10,20 @@ query_blueprint = Blueprint('query', __name__)
 
 @query_blueprint.route('/query', methods=['POST'])
 @login_required
-def query() -> Response:
-    user_id = get_jwt_identity()
+def add_query(user: User) -> Response:
     input_data = request.get_json()
-    return create_query(user_id, input_data)
+    data, code = create_query(user, input_data)
+    return response(data, code)
 
 
 @query_blueprint.route('/query', methods=['GET'])
 @login_required
-def get_queries() -> Response:
-    user_id = get_jwt_identity()
-    return get_user_querries(user_id)
-
+def select_queries(user: User) -> Response:
+    data, code = get_queries(user)
+    return response(data, code)
 
 @query_blueprint.route('/query/<int:id>', methods=['GET'])
 @login_required
-def get_query(id: int) -> Response:
-    user_id = get_jwt_identity()
-    return get_user_querries(user_id, id)
+def select_query(user: User, id: int) -> Response:
+    data, code = get_query_by_id(user, id)
+    return response(data, code)

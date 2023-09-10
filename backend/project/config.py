@@ -1,15 +1,14 @@
 import os
 from datetime import timedelta
-
-
-basedir = os.path.abspath(os.path.dirname(__file__))
+from typing import Final, Optional
 
 
 class Config:
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite://')
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-    STATIC_FOLDER = f"{os.getenv('APP_FOLDER')}/project/static"
-    JWT_SECRET_KEY = os.getenv('APP_SECRET_KEY')
-    JWT_COOKIE_SECURE = os.getenv('JWT_COOKIE_SECURE')
-    JWT_TOKEN_LOCATION = ['headers']
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=30)
+    SQLALCHEMY_DATABASE_URI: Final[str] = os.getenv('DATABASE_URL', 'sqlite://')
+    SQLALCHEMY_TRACK_MODIFICATIONS: Final[bool] = False
+    STATIC_FOLDER: Final[Optional[str]] = f"{os.getenv('APP_FOLDER')}/project/static"
+    JWT_SECRET_KEY: Final[Optional[str]] = os.getenv('APP_SECRET_KEY')
+    JWT_COOKIE_SECURE: Final[Optional[str]] = os.getenv('JWT_COOKIE_SECURE')
+    JWT_TOKEN_LOCATION: Final[list[str]] = ['headers']
+    JWT_ACCESS_TOKEN_EXPIRES: Final[timedelta] = timedelta(minutes=30)
+    JWT_REFRESH_TOKEN_EXPIRES: Final[timedelta] = timedelta(days=15)

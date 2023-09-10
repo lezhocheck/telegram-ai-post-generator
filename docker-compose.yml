@@ -1,25 +1,43 @@
 version: '3.8'
 services:
-  backend:
-    build: ./backend
-    command: python manage.py run -h 0.0.0.0
-    volumes:
-      - ./backend/:/usr/src/app/
-    ports:
-      - 5001:5000
-    env_file:
-      - ./.env.dev
-    depends_on:
-      - database
-      
   database:
     image: postgres:13
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-    environment:
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=admin
-      - POSTGRES_DB=db_dev
+    env_file:  
+      - ./.env
+      
+  backend:
+    build: ./backend
+    volumes:
+      - ./backend/:/usr/src/app/
+    command: python manage.py run -h 0.0.0.0
+    ports:
+      - 5001:5000
+    env_file:
+      - ./.env
+    depends_on:
+      - database
+  
+  frontend:
+    build: 
+      context: ./frontend
+      target: development
+    env_file:  
+      - ./.env
+    ports:
+      - 3000:3000
+    volumes:
+      - ./frontend/src:/usr/src/frontend/src  
+    depends_on:
+      - backend     
+
+  nginx:
+    build: ./nginx
+    ports:
+      - 1337:80
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:
