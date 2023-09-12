@@ -24,5 +24,6 @@ class BaseApi(metaclass=ABCMeta):
     def run(cls, prompt: str, path: str) -> None:
         load_model: Callable[[], Any] = getattr(cls, '__load_model__')
         api = load_model()
-        image = api(prompt).images[0]
-        image.save(path)
+        images = api(prompt).images
+        print(f'{len(images)} generated')
+        images[0].save(path)

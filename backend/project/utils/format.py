@@ -1,6 +1,6 @@
 from typing import Optional
 from flask import jsonify, Response
-from .http import HttpStatus
+from .status import HttpStatus
 
 
 def response(data: Optional[object], status: HttpStatus) -> Response:

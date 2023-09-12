@@ -1,6 +1,6 @@
 import os
 from flask import send_from_directory, Response, current_app, Blueprint
-from project.utils.http import BadRequest
+from project.utils.error import BadRequest
 
 
 main_blueprint = Blueprint('main', __name__)

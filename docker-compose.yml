@@ -36,6 +36,8 @@ services:
     build: ./nginx
     ports:
       - 1337:80
+    volumes:
+      - ./backend/:/usr/src/app/
     depends_on:
       - backend
 

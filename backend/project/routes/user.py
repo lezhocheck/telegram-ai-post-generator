@@ -1,6 +1,6 @@
 from flask import request, Response, Blueprint
 from project.services.user import create_user, login_user
-from project.utils.http import response, HttpStatus
+from project.utils.error import response, HttpStatus
 from flask_jwt_extended import (
     unset_jwt_cookies, 
     jwt_required, 

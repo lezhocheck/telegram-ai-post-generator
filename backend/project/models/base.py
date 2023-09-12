@@ -1,7 +1,7 @@
 from sqlalchemy.ext.declarative import declarative_base
 from typing import Any, Type
 from marshmallow import Schema
-from project.utils import BadRequest
+from project.utils.error import BadRequest
 from typing import Optional
 
 

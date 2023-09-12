@@ -12,3 +12,4 @@ class Config:
     JWT_TOKEN_LOCATION: Final[list[str]] = ['headers']
     JWT_ACCESS_TOKEN_EXPIRES: Final[timedelta] = timedelta(minutes=30)
     JWT_REFRESH_TOKEN_EXPIRES: Final[timedelta] = timedelta(days=15)
+    ON_PAGE_COUNT: Final = 10

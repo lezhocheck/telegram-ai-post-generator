@@ -1,7 +1,8 @@
-from diffusers import StableDiffusionPipeline
+from diffusers import StableDiffusionPipeline, EulerDiscreteScheduler
 from .base import BaseApi
 from . import select_device
 from typing import Final, Any
+import torch
 
 
 class SD14Api(BaseApi):
@@ -19,8 +20,15 @@ class SD14Api(BaseApi):
 
     @classmethod
     def __load_model__(cls) -> Any:
+        model_id: Final[str] = 'CompVis/stable-diffusion-v1-4'
+        scheduler = EulerDiscreteScheduler.from_pretrained(
+            model_id,
+            cache_dir=cls._get_path(),
+            subfolder='scheduler'
+        )
         pipeline = StableDiffusionPipeline.from_pretrained(
-            'CompVis/stable-diffusion-v1-4', 
+            model_id,
+            scheduler=scheduler,
             cache_dir=cls._get_path()
         ).to(select_device())
         return pipeline

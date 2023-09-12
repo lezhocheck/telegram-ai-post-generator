@@ -1,5 +1,5 @@
 from project.models.user import User, LoginValidator
-from project.utils.http import BadRequest, HttpStatus
+from project.utils.error import BadRequest, HttpStatus
 from functools import wraps
 from typing import Any, Callable
 from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request

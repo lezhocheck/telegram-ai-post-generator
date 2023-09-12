@@ -1,8 +1,10 @@
 from project.models.model import Model
-from project.utils.http import BadRequest, HttpStatus
+from project.utils.error import BadRequest, HttpStatus
 from typing import Any
+from project.utils.paginate import paginated
 
 
+@paginated
 def get_all_models() -> tuple[list[dict[str, Any]], HttpStatus]:
     result = Model.query.all()
     result = [model.to_dict() for model in result]

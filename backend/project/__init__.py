@@ -8,7 +8,7 @@ from project.routes.model import model_blueprint
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
-from project.utils.http import BadRequest
+from project.utils.error import BadRequest
 
 
 def register_blueprints(app: Flask) -> None:

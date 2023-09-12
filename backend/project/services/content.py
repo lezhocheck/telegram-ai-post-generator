@@ -3,7 +3,7 @@ from project.models.content import Content
 from project.models.query import Query
 from project.models.user import User
 from typing import Any
-from project.utils.http import HttpStatus, BadRequest
+from project.utils.error import HttpStatus, BadRequest
 from project.utils.paginate import paginated
 
 
