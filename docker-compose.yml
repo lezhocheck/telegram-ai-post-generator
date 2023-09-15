@@ -19,27 +19,27 @@ services:
     depends_on:
       - database
   
-  frontend:
-    build: 
-      context: ./frontend
-      target: development
-    env_file:  
-      - ./.env
-    ports:
-      - 3000:3000
-    volumes:
-      - ./frontend/src:/usr/src/frontend/src  
-    depends_on:
-      - backend     
+#  frontend:
+#    build: 
+#      context: ./frontend
+#      target: development
+#    env_file:  
+#      - ./.env
+#    ports:
+#      - 3000:3000
+#    volumes:
+#      - ./frontend/src:/usr/src/frontend/src  
+#    depends_on:
+#      - backend     
 
-  nginx:
-    build: ./nginx
-    ports:
-      - 1337:80
-    volumes:
-      - ./backend/:/usr/src/app/
-    depends_on:
-      - backend
+#  nginx:
+#    build: ./nginx
+#    ports:
+#      - 1337:80
+#    volumes:
+#      - ./backend/:/usr/src/app/
+#    depends_on:
+#      - backend
 
 volumes:
   postgres_data:

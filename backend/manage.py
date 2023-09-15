@@ -18,7 +18,8 @@ def create_db() -> None:
 def preload_dependencies() -> None:
     db.session.add(SD14Api.preload())
     db.session.commit()
-    pass
+    
 
 if __name__ == '__main__':
     cli()
+

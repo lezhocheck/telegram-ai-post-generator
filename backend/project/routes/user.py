@@ -1,42 +1,64 @@
-from flask import request, Response, Blueprint
-from project.services.user import create_user, login_user
-from project.utils.error import response, HttpStatus
+from project.extensions import db
+from flask_smorest import Blueprint, abort
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from project.models.user import User
+from http import HTTPStatus
+from typing import Any
+from project.models.user.schema import (
+    UserInputSchema,
+    UserResponseSchema,
+    UserAuthResponseSchema,
+    UserRefreshResponseSchema
+)
+from project.utils import auth_required
 from flask_jwt_extended import (
-    unset_jwt_cookies, 
-    jwt_required, 
     get_jwt_identity,
     create_access_token
 )
 
 
-user_blueprint = Blueprint('user', __name__)
+blp = Blueprint(
+    'Authentication', 
+    __name__,
+    url_prefix='/auth'
+)
 
 
-@user_blueprint.route('/auth/signup', methods=['POST'])
-def signup() -> Response:
-    input_data = request.get_json()
-    data, code = create_user(input_data)
-    return response(data, code)
+@blp.route('/signup', methods=['POST'])
+@blp.arguments(UserInputSchema)
+@blp.response(HTTPStatus.CREATED, UserResponseSchema)
+@blp.doc(security=[])
+def signup(args: dict[str, Any]) -> User:
+    user = User(**args)
+    user.hash_password()
+    try:
+        db.session.add(user)
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        abort(HTTPStatus.BAD_REQUEST, message='User already signed up')
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        abort(HTTPStatus.BAD_REQUEST, errors=[str(x) for x in e.args])
+    return user
 
 
-@user_blueprint.route('/auth/login', methods=['POST'])
-def login() -> Response:
-    input_data = request.get_json()
-    data, code = login_user(input_data)
-    return response(data, code)
-
-
-@user_blueprint.route('/auth/logout', methods=['POST'])
-def logout() -> Response:
-    result = response('Successfully logged out', HttpStatus.OK)
-    unset_jwt_cookies(result)
-    return result
+@blp.route('/login', methods=['POST'])
+@blp.arguments(UserInputSchema)
+@blp.response(HTTPStatus.OK, UserAuthResponseSchema)
+@blp.doc(security=[])
+def login(args: dict[str, Any]) -> User:
+    user: User = User.query.filter_by(email=args['email']).first()
+    if user is None or not user.check_password(args['password']):
+        abort(HTTPStatus.BAD_REQUEST, message='Invalid credentials')
+    user.set_tokens()
+    return user
     
 
-@user_blueprint.route('/auth/refresh', methods=['POST'])
-@jwt_required(refresh=True)
-def refresh() -> Response:
+@blp.route('/refresh', methods=['POST'])
+@auth_required(refresh=True)
+@blp.response(HTTPStatus.OK, UserRefreshResponseSchema)
+def refresh() -> dict[str, str]:
     id = get_jwt_identity()
-    access_token = create_access_token(identity=id)
-    result = {'tokens': {'access': access_token}}
-    return response(result, HttpStatus.OK)
+    access = create_access_token(identity=id)
+    return {'access': access}

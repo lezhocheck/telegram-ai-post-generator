@@ -1,22 +1,40 @@
-from flask import Response, Blueprint
-from project.services.content import get_content, get_content_by_id
-from project.services.user import login_required
-from project.models.user import User
-from project.utils.format import response
+from flask_smorest import Blueprint
+from flask_smorest.pagination import PaginationParameters
+from flask.views import MethodView
+from http import HTTPStatus
+from project.models.content import Content
+from project.models.content.schema import (
+    ContentResponseSchema,
+    ContentInputArgsSchema
+)
+from project.utils import auth_required
+from typing import Any
 
 
-content_blueprint = Blueprint('content', __name__)
+blp = Blueprint(
+    'Content', 
+    __name__,
+    url_prefix='/content'
+)
 
 
-@content_blueprint.route('/content', methods=['GET'])
-@login_required
-def select_contents(user: User) -> Response:
-    data, code = get_content(user)
-    return response(data, code)
+@blp.route('')
+class ContentView(MethodView):
+    @auth_required(refresh=False)
+    @blp.arguments(ContentInputArgsSchema, location='query')
+    @blp.response(HTTPStatus.OK, ContentResponseSchema(many=True))
+    @blp.paginate()
+    def get(self, args: dict[str, Any],
+            pagination_parameters: PaginationParameters) -> list[Content]:
+        return Content.query.paginate(
+            page=pagination_parameters.page, 
+            per_page=pagination_parameters.page_size
+        )
 
 
-@content_blueprint.route('/content/<int:id>', methods=['GET'])
-@login_required
-def select_content(user: User, id: int) -> Response:
-    data, code = get_content_by_id(user, id)
-    return response(data, code)
+@blp.route('/<int:id>')
+class ContentByIdView(MethodView):  
+    @auth_required(refresh=False)
+    @blp.response(HTTPStatus.OK, ContentResponseSchema)
+    def get(self, id: int) -> Content:
+        return Content.query.filter_by(id=id).first()

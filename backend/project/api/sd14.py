@@ -1,34 +1,31 @@
-from diffusers import StableDiffusionPipeline, EulerDiscreteScheduler
+from diffusers import StableDiffusionPipeline
 from .base import BaseApi
 from . import select_device
 from typing import Final, Any
-import torch
+from project.models.model import Model, Type
 
 
 class SD14Api(BaseApi):
-    __TITLE__: Final = 'Stable-Diffusion-v1-4'
-    __DESCRIPTION__: Final = r'''Stable Diffusion is a latent 
-    text-to-image diffusion model capable of 
-    generating photo-realistic images given any text 
-    input. The Stable-Diffusion-v1-4 checkpoint was 
-    initialized with the weights of the Stable-Diffusion-v1-2 
-    checkpoint and subsequently fine-tuned on 225k steps at 
-    resolution 512x512 on 'laion-aesthetics v2 5+' and 
-    10% dropping of the text-conditioning to improve 
-    classifier-free guidance sampling.'''
-    __AVAILABLE__: Final = True
+    __MODEL__ = Model(
+        title='Stable-Diffusion-v1-4',
+        content_type=Type.IMAGE_PNG,
+        description=r'Stable Diffusion is a latent' 
+            r'text-to-image diffusion model capable of' 
+            r'generating photo-realistic images given any text' 
+            r'input. The Stable-Diffusion-v1-4 checkpoint was' 
+            r'initialized with the weights of the Stable-Diffusion-v1-2' 
+            r'checkpoint and subsequently fine-tuned on 225k steps at' 
+            r'resolution 512x512 on "laion-aesthetics v2 5+" and' 
+            r'10% dropping of the text-conditioning to improve' 
+            r'classifier-free guidance sampling.',
+        is_available=False
+    )
 
     @classmethod
     def __load_model__(cls) -> Any:
         model_id: Final[str] = 'CompVis/stable-diffusion-v1-4'
-        scheduler = EulerDiscreteScheduler.from_pretrained(
-            model_id,
-            cache_dir=cls._get_path(),
-            subfolder='scheduler'
-        )
         pipeline = StableDiffusionPipeline.from_pretrained(
             model_id,
-            scheduler=scheduler,
             cache_dir=cls._get_path()
         ).to(select_device())
         return pipeline
