@@ -1,0 +1,6 @@
+I will send you a text with topic description of some post and post itself.
+Assess wheater it is needed to generate image for this post based on topic description. 
+If you are not sure, assume that image is needed. Remember your answer.
+
+Provide your answer in JSON structure like this {"image_required": "<true or false>", "prompt_for_text_to_image_model": "<Genereate comprehensive and detailed prompt for text to image model here or return null if image is not needed>"}.
+Do not explain anything. Return only generated JSON.
