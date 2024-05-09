@@ -1,9 +1,9 @@
-from pydantic import BaseModel, ConfigDict
-from typing import Literal, List
+from pydantic import BaseModel, ConfigDict, BeforeValidator
+from typing import Literal, List, Optional, Annotated, TypedDict
 from datetime import datetime
 
 
-class ConversationMessage(BaseModel):
+class ConversationMessage(TypedDict):
     role: Literal['system', 'user', 'assistant']
     content: str
 
@@ -35,3 +35,8 @@ class ResponsePostSchema(CreatePostSchema):
 
     post_id: int
     timestamp: datetime
+
+
+class IsImageRequiredSchema(BaseModel):
+    image_required: Annotated[bool, BeforeValidator(lambda x: bool(x))]
+    prompt_for_text_to_image_model: Optional[str]

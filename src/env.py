@@ -3,6 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import PostgresDsn, BaseModel
 
 
+@final
 class Prompts(BaseModel):
     gpt_post_text_path: str = './src/inference/prompts/gpt-post-text.txt'
     gpt_image_required_path: str = './src/inference/prompts/gpt-image-required.txt'
@@ -17,16 +18,15 @@ class Env(BaseSettings):
     )
 
     db: PostgresDsn
+    service_host: str
     bot_token: str
     telegram_secret: str
-    service_host: str
 
     openai_key: str
-    gpt_inference_model: str = 'gpt-3.5-turbo-0125'
-
-    prompts: Prompts = Prompts()
-
     test_mode: bool
+
+    gpt_inference_model: str = 'gpt-3.5-turbo-0125'
+    prompts: Prompts = Prompts()
 
 
 ENV = Env()

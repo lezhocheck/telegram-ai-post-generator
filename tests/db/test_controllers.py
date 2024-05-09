@@ -1,7 +1,7 @@
 import unittest
 import pytest
 from src.db.controllers import UserController, PostController
-from src.db.schemas import (
+from src.schemas import (
     Conversation,
     CreateUserSchema,
     CreatePostSchema,

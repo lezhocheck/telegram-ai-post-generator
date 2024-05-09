@@ -1,7 +1,6 @@
 from src.inference import openai_client
-from src.db.schemas import ConversationMessage, Conversation
+from src.schemas import ConversationMessage, Conversation, IsImageRequiredSchema
 from src.env import ENV
-from src.inference.schema import IsImageRequiredSchema
 import logging
 
 
@@ -27,7 +26,7 @@ class GptInferenceApi:
         return completion.choices[0].message.content
     
     async def is_image_asked(self, conversation: Conversation) -> IsImageRequiredSchema:
-        user_messages = [i.model_dump() for i in conversation.messages if i.role == 'user']
+        user_messages = [i for i in conversation.messages if i['role'] == 'user']
         if not len(user_messages):
             raise ValueError('No user messages')
         user_messages.insert(0, {'role': 'system', 'content': self._image_required_prompt})

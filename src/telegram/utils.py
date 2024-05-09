@@ -2,7 +2,7 @@ from typing import List
 import re
 
 
-def split_text(text: str, *chunks: int) -> List[str]:
+def split_to_chunks(text: str, *chunks: int) -> List[str]:
     result = []
     current_chunk, chunk_index = '', 0
     for sentence in re.findall(r'.{1,%d}(?:\s+|$)' % chunks[chunk_index], text):

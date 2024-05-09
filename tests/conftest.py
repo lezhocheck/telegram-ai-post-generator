@@ -1,15 +1,15 @@
 from typing import Generator
 import pytest
-from src.db import db_connection
+from src.db.controllers import db_manager
 from src.db.models import Post, User
-from src.db.schemas import Conversation, ConversationMessage
+from src.schemas import Conversation, ConversationMessage
 
 
 @pytest.fixture(scope='class')
 def db_with_test_user(request: pytest.FixtureRequest) -> Generator[None, None, None]:
     try:
-        db_connection.create_tables()
-        with db_connection.session() as session:
+        db_manager.create_tables()
+        with db_manager.session() as session:
             session.begin()
             test_user = User(tg_user_id=1, tg_username='test_user', tg_chat_id=1)
             conversation = Conversation(messages=[
@@ -26,4 +26,4 @@ def db_with_test_user(request: pytest.FixtureRequest) -> Generator[None, None, N
             request.cls.session = session
             yield
     finally:
-        db_connection.drop_tables()
+        db_manager.drop_tables()

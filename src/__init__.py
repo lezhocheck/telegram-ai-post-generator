@@ -6,16 +6,16 @@ from contextlib import asynccontextmanager
 from src.routes import router
 from src.telegram import bot, setup_bot
 from typing import AsyncGenerator, Optional
-from src.db import db_connection
+from src.db.controllers import db_manager
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncGenerator:
-    db_connection.create_tables()
+    db_manager.create_tables()
     await setup_bot()
     yield
     await bot.delete_webhook(drop_pending_updates=True)
-    db_connection.close()
+    db_manager.close()
 
 
 def init_logger(buffer: Optional[IOBase] = None) -> None:
@@ -26,7 +26,7 @@ def init_logger(buffer: Optional[IOBase] = None) -> None:
         level=logging.INFO,
         format='%(asctime)s [%(levelname)s] [%(filename)s:%(lineno)d] %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
-        handlers=handlers,
+        handlers=handlers
     )
 
 

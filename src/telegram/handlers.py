@@ -4,7 +4,7 @@ from aiogram.filters import CommandStart, Command
 from src.telegram.filters import PrivateChatFilter
 from src.db.controllers import UserController, PostController
 from aiogram.utils.chat_action import ChatActionSender
-from src.db.schemas import (
+from src.schemas import (
     CreateUserSchema, 
     Conversation, 
     ConversationMessage, 
@@ -14,13 +14,14 @@ from src.db.schemas import (
 from src.inference.gpt import GptInferenceApi
 from src.inference.dalle import DalleInferenceApi
 from src.inference.whisper import WhisperInferenceApi
-from src.telegram.utils import split_text
+from src.telegram.utils import split_to_chunks
 from typing import Optional
 from io import BytesIO
 from time import time
 
 
 router = Router(name='telegram')
+
 gpt_api = GptInferenceApi()
 dalle_api = DalleInferenceApi()
 whisper_api = WhisperInferenceApi()
@@ -108,7 +109,7 @@ async def handle_post_message(message: Message, post: ResponsePostSchema) -> Non
     ))
     generate_image = await gpt_api.is_image_asked(post.conversation)
     if not generate_image.image_required:
-        for chunk in split_text(answer, 4096):
+        for chunk in split_to_chunks(answer, 4096):
             await message.answer(chunk)
         return
     
@@ -120,7 +121,7 @@ async def handle_post_message(message: Message, post: ResponsePostSchema) -> Non
         await message.answer(ERROR_ON_GEN_IMAGE)
         return
     
-    splitted = split_text(answer, 1024, 4096)
+    splitted = split_to_chunks(answer, 1024, 4096)
     await message.answer_photo(image, caption=splitted[0])
     for chunk in splitted[1:]:
             await message.answer(chunk)

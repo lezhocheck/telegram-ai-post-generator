@@ -2,7 +2,6 @@ import contextlib
 from sqlalchemy import create_engine, Connection
 from typing import Iterator, Any
 from sqlalchemy.orm import sessionmaker
-from src.env import ENV
 from src.db.models import Base
 
 
@@ -41,5 +40,3 @@ class DbSessionManager:
         if self._engine is None or self._sessionmaker is None:
             raise Exception(f'{self.__class__} is not initialized')
         
-
-db_connection = DbSessionManager('sqlite://' if ENV.test_mode else str(ENV.db))
