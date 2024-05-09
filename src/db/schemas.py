@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Literal, List
 from datetime import datetime
 
@@ -19,11 +19,10 @@ class CreateUserSchema(BaseModel):
 
 
 class ResponseUserSchema(CreateUserSchema):
+    model_config = ConfigDict(from_attributes=True)
+    
     is_active: bool
     joined_ts: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class CreatePostSchema(BaseModel):
@@ -32,8 +31,7 @@ class CreatePostSchema(BaseModel):
 
 
 class ResponsePostSchema(CreatePostSchema):
+    model_config = ConfigDict(from_attributes=True)
+
     post_id: int
     timestamp: datetime
-
-    class Config:
-        from_attributes = True

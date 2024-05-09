@@ -26,5 +26,7 @@ class Env(BaseSettings):
 
     prompts: Prompts = Prompts()
 
+    test_mode: bool
+
 
 ENV = Env()

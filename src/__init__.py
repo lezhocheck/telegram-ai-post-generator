@@ -6,16 +6,16 @@ from contextlib import asynccontextmanager
 from src.routes import router
 from src.telegram import bot, setup_bot
 from typing import AsyncGenerator, Optional
-from src.db import create_tables, session
+from src.db import db_connection
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncGenerator:
-    create_tables()
+    db_connection.create_tables()
     await setup_bot()
     yield
     await bot.delete_webhook(drop_pending_updates=True)
-    session.close()
+    db_connection.close()
 
 
 def init_logger(buffer: Optional[IOBase] = None) -> None:

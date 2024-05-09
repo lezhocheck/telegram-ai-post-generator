@@ -1,13 +1,7 @@
-from pydantic import BaseModel, validator
-from typing import Optional, Any
+from pydantic import BaseModel, BeforeValidator
+from typing import Optional, Annotated
 
 
 class IsImageRequiredSchema(BaseModel):
-    image_required: bool
+    image_required: Annotated[bool, BeforeValidator(lambda x: bool(x))]
     prompt_for_text_to_image_model: Optional[str]
-
-    @validator('image_required', pre=True, always=True)
-    def parse_bool(cls, value: Any) -> bool:
-        if not isinstance(value, str):
-            return bool(value) if value != '' else False
-        return value
