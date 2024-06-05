@@ -48,7 +48,7 @@ XBOT is a Telegram bot designed to assist users in generating, editing, and enha
     POSTGRES_USER=<your username>
     POSTGRES_PASSWORD=<your password>
     DB=postgresql://<your username>:<your password>@postgres:5432/postgres
-    SERVICE_HOST=<public host url, you can use ngrok to obtain one>
+    SERVICE_HOST=<public host url, you can use ngrok to obtain>
     BOT_TOKEN=<your bot token obtained from Telegram Bot Father>
     TELEGRAM_SECRET=<your Telegram secret token>
     OPENAI_KEY=<your OpenAI API token>
@@ -59,17 +59,12 @@ XBOT is a Telegram bot designed to assist users in generating, editing, and enha
 
 ### Running Locally
 
-1. Activate the virtual environment:
-    ```bash
-    poetry shell
-    ```
-
-2. Start the FastAPI server & PostgreSQL containers:
+1. Start the FastAPI server & PostgreSQL containers:
     ```bash
     docker compose up --build
     ```
 
-3. Start ngrok for local development:
+2. Start ngrok for local development:
     ```bash
     ngrok http 8000
     ```
