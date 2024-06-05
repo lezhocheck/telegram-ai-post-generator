@@ -14,7 +14,7 @@ from sqlalchemy.exc import IntegrityError
 from src.env import ENV
 
 
-db_manager: DbSessionManager = DbSessionManager('sqlite:///' if ENV.test_mode else ENV.db)
+db_manager: DbSessionManager = DbSessionManager('sqlite:///' if ENV.test_mode else str(ENV.db))
     
 
 class UserController:

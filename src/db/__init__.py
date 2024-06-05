@@ -10,7 +10,7 @@ class DbSessionManager:
         self._engine = create_engine(host, **engine_kwargs)
         self._sessionmaker = sessionmaker(autocommit=False, autoflush=False, bind=self._engine)
 
-    def close(self):
+    def close(self) -> None:
         self._assert_initialized()
         self._engine.dispose()
         self._engine = None
